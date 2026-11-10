@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Handwriting Studio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat&family=Kalam&family=Indie+Flower&family=Patrick+Hand&family=Reenie+Beanie&family=Nanum+Pen+Script&family=Shadows+Into+Light&family=Homemade+Apple&family=Covered+By+Your+Grace&family=Gloria+Hallelujah&family=Architects+Daughter&display=swap">
+<style>
+:root{--bg:#ebe8e0;--fg:#222;--panel:#fff;--bd:#d8d3c6;--ac:#2d5bd6;--mut:#6f6f6f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1a18;--fg:#eee;--panel:#272624;--bd:#43413d;--ac:#7ea2ff;--mut:#aaa}}
+:root[data-theme="dark"]{--bg:#1b1a18;--fg:#eee;--panel:#272624;--bd:#43413d;--ac:#7ea2ff;--mut:#aaa}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.4}
+.wrap{max-width:1500px;margin:0 auto;padding:14px;display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:16px;align-items:start}
+.side{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;position:sticky;top:10px;max-height:calc(100vh - 20px)}
+.main{min-width:0}
+h1{font-size:18px;margin:0}
+.tabs{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:10px}
+.tabs button{flex:1;padding:7px 4px;border:0;background:transparent;color:var(--fg);border-radius:7px;font-size:13px}
+.tabs button.on{background:var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.25);font-weight:600}
+.tabc{overflow:auto;display:grid;gap:14px;align-content:start;padding:2px 4px 4px 2px}
+.tabc[hidden]{display:none}
+label{display:grid;gap:5px;font-size:12.5px;color:var(--mut)}
+label>span{display:flex;justify-content:space-between}
+label>span b{color:var(--fg);font-weight:600}
+label.c{display:flex;align-items:center;gap:8px}
+textarea,select,input[type=text]{width:100%;font:inherit;font-size:13px;padding:8px 9px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--fg)}
+textarea#txt{min-height:300px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.5}
+input[type=color]{width:100%;height:36px;padding:2px;border-radius:8px;border:1px solid var(--bd);background:var(--bg)}
+input[type=range]{width:100%;margin:2px 0}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{font:inherit;font-size:13px;padding:8px 13px;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:#fff;cursor:pointer}
+button.alt{background:transparent;color:var(--ac)}
+button:disabled{opacity:.45;cursor:default}
+.hint{font-size:12px;color:var(--mut);margin:0;line-height:1.5}
+.bar{position:sticky;top:10px;z-index:5;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:9px 12px;margin-bottom:12px}
+.bar select{width:auto}
+.seg{display:flex;border:1px solid var(--ac);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent;color:var(--ac);padding:6px 11px}
+.seg button.on{background:var(--ac);color:#fff}
+.sp{flex:1}
+#st{font-size:12px;color:var(--mut)}
+#view{position:relative;overflow-x:auto;padding-bottom:30px}
+#pages{--zw:min(100%,900px)}
+#pages.v-list .pg,#pages.v-one .pg{width:var(--zw);margin:0 auto 22px}
+#pages.v-one .pg{display:none}#pages.v-one .pg.cur{display:block}
+#pages.v-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+#pages.v-two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.pg canvas{display:block;width:100%;height:auto;box-shadow:0 2px 14px rgba(0,0,0,.35);border-radius:2px;background:#fff;cursor:text}
+.v-grid .pg canvas{cursor:pointer}.v-grid .pb{display:none}
+.tb{display:flex;justify-content:space-between;align-items:center;margin:0 0 6px;font-size:12px;color:var(--mut);min-height:26px}
+.tb button{padding:3px 9px;font-size:12px}
+.edw{position:absolute;z-index:6;display:none;background:var(--panel);border:2px solid var(--ac);border-radius:10px;padding:7px 8px 8px;box-shadow:0 8px 26px rgba(0,0,0,.4)}
+.edw small{display:block;font-size:11px;color:var(--mut);margin-bottom:4px}
+.edw textarea{height:44px;max-height:260px;resize:none;font-size:13px}
+@media(max-width:860px){.wrap{grid-template-columns:1fr;padding:10px}.side{position:static;max-height:none}.tabc{max-height:52vh}.bar{position:static}#pages.v-two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="side">
+  <div><h1>Handwriting Studio</h1></div>
+  <div class="tabs" id="tabs"><button data-t="text" class="on">Text</button><button data-t="pen">Pen</button><button data-t="human">Human</button><button data-t="page">Page</button><button data-t="export">Export</button></div>
+
+  <div class="tabc" id="t_text">
+    <label><span>Your text</span><textarea id="txt" spellcheck="false"></textarea></label>
+    <p class="hint"><b># Heading</b> · <b>## Subheading</b> · <b>- bullet</b> · <b>Q1. … (5 marks)</b> keeps room for the answer (or moves to the next page) · <b>---</b> new page · blank lines stay blank.</p>
+    <label><span>Header on page 1</span><input type="text" id="hdr" placeholder="Name · Roll No · Subject"></label>
+    <label class="c"><input type="checkbox" id="date" checked> Write today’s date on page 1</label>
+  </div>
+
+  <div class="tabc" id="t_pen" hidden>
+    <label><span>Handwriting font</span><select id="font"><option>Caveat</option><option>Kalam</option><option>Indie Flower</option><option>Patrick Hand</option><option>Reenie Beanie</option><option>Nanum Pen Script</option><option>Shadows Into Light</option><option>Homemade Apple</option><option>Covered By Your Grace</option><option>Gloria Hallelujah</option><option>Architects Daughter</option></select></label>
+    <div class="r2"><label><span>Pen</span><select id="pen"><option value="ball">Blue ball pen</option><option value="gel">Black gel pen</option><option value="fountain">Fountain pen</option><option value="pencil">Pencil</option></select></label>
+    <label><span>Ink colour</span><input type="color" id="ink" value="#1a3a9c"></label></div>
+    <label><span>Letter size <b id="v_size"></b></span><input type="range" id="size" min="16" max="40" value="25"></label>
+    <label><span>Word spacing <b id="v_wsp"></b></span><input type="range" id="wsp" min="0.6" max="1.8" step="0.05" value="1"></label>
+    <label><span>Letter spacing <b id="v_lsp"></b></span><input type="range" id="lsp" min="-2" max="6" step="0.5" value="0"></label>
+  </div>
+
+  <div class="tabc" id="t_human" hidden>
+    <label><span>Messiness (wobble, tilt, uneven gaps) <b id="v_mess"></b></span><input type="range" id="mess" min="0" max="10" value="4"></label>
+    <label><span>Mistakes &amp; cross-outs <b id="v_mist"></b></span><input type="range" id="mist" min="0" max="10" value="2"></label>
+    <label><span>Tiredness (sloppier down the page) <b id="v_tired"></b></span><input type="range" id="tired" min="0" max="10" value="3"></label>
+    <label><span>Lines needed to start a question <b id="v_minq"></b></span><input type="range" id="minq" min="0" max="16" value="6"></label>
+    <p class="hint">If fewer lines than this are left, the question starts on the next page and the rest of the page stays blank. Marks like “(10 marks)” raise the requirement automatically.</p>
+    <button id="rand2" class="alt">New variation of my handwriting</button>
+  </div>
+
+  <div class="tabc" id="t_page" hidden>
+    <div class="r2"><label><span>Paper size</span><select id="psize"><option>A4</option><option>Letter</option><option>A5</option></select></label>
+    <label><span>Style</span><select id="paper"><option value="ruled">Ruled</option><option value="grid">Grid</option><option value="dotted">Dotted</option><option value="plain">Plain</option></select></label></div>
+    <div class="r2"><label><span>Paper colour</span><select id="tone"><option value="white">White</option><option value="cream">Cream</option><option value="yellow">Legal pad</option></select></label>
+    <label><span>Page numbers</span><select id="pgs"><option value="none">None</option><option value="1" selected>1</option><option value="dash">- 1 -</option><option value="of">Page 1 of N</option></select></label></div>
+    <label><span>Line spacing <b id="v_lh"></b></span><input type="range" id="lh" min="28" max="48" value="34"></label>
+    <label><span>Left margin <b id="v_mlp"></b></span><input type="range" id="mlp" min="5" max="20" step="0.5" value="11.5"></label>
+    <label><span>Right margin <b id="v_mrp"></b></span><input type="range" id="mrp" min="2" max="15" step="0.5" value="6"></label>
+    <label class="c"><input type="checkbox" id="scan" checked> Scan / photo look (tilt, grain, shadow)</label>
+  </div>
+
+  <div class="tabc" id="t_export" hidden>
+    <label><span>Format</span><select id="xf"><option value="pdf">PDF (all pages in one file)</option><option value="png">PNG images (ZIP)</option><option value="jpg">JPG images (ZIP)</option><option value="txt">Plain text (.txt)</option></select></label>
+    <label><span>Quality</span><select id="xq"><option value="1.5">Draft (small file)</option><option value="2" selected>Standard</option><option value="3">High (print)</option></select></label>
+    <label><span>Pages (blank = all, e.g. 1-3,5)</span><input type="text" id="xr" placeholder="all"></label>
+    <button id="xgo" disabled>Export</button>
+    <p class="hint">Single pages can also be saved with the PNG / JPG buttons above each page. A one-page PNG or JPG export downloads as a plain image, not a ZIP.</p>
+    <p class="hint" id="dlh"></p>
+  </div>
+</div>
+
+<div class="main">
+  <div class="bar">
+    <div class="seg" id="vseg"><button data-v="list">List</button><button data-v="grid">Grid</button><button data-v="one">Single</button><button data-v="two">Two-up</button></div>
+    <select id="zoom"><option value="fit">Fit width</option><option value="75">75%</option><option value="100">100%</option><option value="125">125%</option><option value="150">150%</option></select>
+    <span id="nav"><button id="prev" class="alt">‹</button> <span id="pi"></span> <button id="next" class="alt">›</button></span>
+    <span class="sp"></span><span id="st"></span>
+    <button id="rand" class="alt">New variation</button><button id="exp" disabled>Export</button>
+  </div>
+  <p class="hint" style="margin:0 2px 10px">Tip: click any line on a page to edit it right there. In Grid view, click a page to open it.</p>
+  <div id="view"><div id="pages"></div>
+    <div class="edw" id="edw"><small>Editing this line · Enter to finish · Esc to close</small><textarea id="ed"></textarea></div>
+  </div>
+</div>
+</div>
+<script>
+var $=function(i){return document.getElementById(i)};
+var seed=11,canv=[],dl=null,busy=false,again=false,tm=0,view='list',cur=0,lastC=null,lastPages=[],xb=false,edSrc=-1,noise=null;
+var mctx=document.createElement('canvas').getContext('2d');
+var SZ={A4:[794,1123],Letter:[816,1056],A5:[559,794]};
+var PEN={ball:{c:'#1a3a9c',a:.93,b:.5},gel:{c:'#111111',a:1,b:.9},fountain:{c:'#1c2a6e',a:.87,b:1.3},pencil:{c:'#4a4a4a',a:.7,b:1.6}};
+var TONE={white:'#fdfdfb',cream:'#faf3e0',yellow:'#f6eeb8'};
+var IDS=['txt','hdr','date','font','pen','ink','size','wsp','lsp','mess','mist','tired','minq','psize','paper','tone','pgs','lh','mlp','mrp','scan','xf','xq','xr','zoom'];
+var SAMPLE="# Assignment 1\n\n## Q1. Define an operating system. (5 marks)\nAn operating system is system software that manages computer hardware and provides common services for programs. It acts as an interface between the user and the machine.\n- Process management\n- Memory management\n- File system and I/O control\n\nQ2. Explain deadlock and the four conditions required for it to occur. (10 marks)\nA deadlock is a situation in which a set of processes are blocked because each process holds a resource and waits for another resource held by some other process in the set.\n\nThe four necessary conditions are mutual exclusion, hold and wait, no pre-emption and circular wait. If any one of these is prevented, deadlock cannot occur.\n\nQ3. Differentiate between a process and a thread. (5 marks)\nA process is an independent program in execution with its own address space, whereas a thread is a lightweight unit of execution that shares the address space of its parent process.";
+var seg=window.Intl&&Intl.Segmenter?new Intl.Segmenter(undefined,{granularity:'grapheme'}):null;
+function gr(s){return seg?Array.from(seg.segment(s),function(x){return x.segment}):Array.from(s)}
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function st(t){$('st').textContent=t}
+function cfg(){var P=SZ[$('psize').value],c={W:P[0],H:P[1],lh:+$('lh').value,size:+$('size').value,wsp:+$('wsp').value,lsp:+$('lsp').value,font:$('font').value,ink:$('ink').value,pen:PEN[$('pen').value],mess:+$('mess').value,mist:+$('mist').value,tired:+$('tired').value,paper:$('paper').value,tone:TONE[$('tone').value],scan:$('scan').checked,pgs:$('pgs').value,date:$('date').checked,minq:+$('minq').value,hdr:$('hdr').value,txt:$('txt').value};
+  c.mL=Math.round(c.W*$('mlp').value/100);c.mR=Math.round(c.W*$('mrp').value/100);c.top=Math.round(c.H*.08);c.cap=Math.floor((c.H-c.top-52)/c.lh);c.fam='"'+c.font+'",cursive';return c}
+function garb(w,r){var a=w.split(''),i=1+Math.floor(r()*(a.length-2));if(a[i]!==a[i+1]){var t=a[i];a[i]=a[i+1];a[i+1]=t}else a.splice(i,1);return a.join('')}
+function layout(c,m){
+  var rnd=mul(seed*31+7),cache={},items=[],avail=c.W-c.mL-c.mR;
+  function ww(s,z){var k=z+'|'+s;if(cache[k]!=null)return cache[k];m.font=z+'px '+c.fam;var w=0;gr(s).forEach(function(g){w+=m.measureText(g).width+c.lsp*z/25});return cache[k]=w}
+  c.txt.split('\n').forEach(function(raw,si){
+    var t=raw.replace(/\s+$/,''),kind='p',ind=0,bullet=false,need=1,size=c.size,mm;
+    if(/^(---|\[page\])$/i.test(t.trim())){items.push({t:'pb'});return}
+    if(!t.trim()){items.push({t:'blank',src:si});return}
+    if(mm=t.match(/^(#{1,2})\s+(.*)/)){kind=mm[1].length==1?'h1':'h2';size=c.size*(kind=='h1'?1.35:1.12);t=mm[2];need=3}
+    else if(mm=t.match(/^[-*•]\s+(.*)/)){bullet=true;ind=c.size*1.1;t=mm[1]}
+    else if(/^(Q(uestion)?\s*\.?\s*\d*\s*[.):\-]?\s)/i.test(t)){var mk=t.match(/(\d+)\s*marks?/i);need=Math.max(c.minq,mk?Math.round(mk[1]*1.5):0)}
+    var sp=Math.max(ww(' ',size),size*.28)*c.wsp;
+    var words=t.split(/\s+/).filter(Boolean).map(function(w){var o={w:w};if(c.mist&&w.length>3&&/^[A-Za-z]+$/.test(w)&&rnd()<c.mist*.005)o.wr=garb(w,rnd);return o});
+    var lines=[],cur=[],wd=0,max=(avail-ind)*.95;
+    words.forEach(function(o){var w=ww(o.w,size)+(o.wr?ww(o.wr,size)*1.1+sp:0),add=cur.length?sp+w:w;
+      if(cur.length&&wd+add>max){lines.push(cur);cur=[o];wd=w}else{cur.push(o);wd+=add}});
+    if(cur.length)lines.push(cur);
+    lines.forEach(function(l,i){items.push({t:'text',src:si,kind:kind,words:l,size:size,ind:ind,bullet:bullet&&i===0,need:i===0?need:1,sp:sp})});
+  });
+  var pages=[[]],used=0;
+  function np(){pages.push([]);used=0}
+  items.forEach(function(it){
+    if(it.t==='pb'){if(used>0)np();return}
+    if(used>=c.cap)np();
+    if(it.t==='blank'&&used===0&&pages.length>1)return;
+    if(used>0&&c.cap-used<(it.need||1))np();
+    pages[pages.length-1].push({it:it,row:used});used++;
+  });
+  if(pages.length>1&&!pages[pages.length-1].length)pages.pop();
+  return pages;
+}
+function mkNoise(){var n=document.createElement('canvas');n.width=n.height=128;var x=n.getContext('2d'),d=x.createImageData(128,128);for(var i=0;i<d.data.length;i+=4){var v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255}x.putImageData(d,0,0);return n}
+function paper(ctx,c){
+  var y,x;ctx.lineWidth=1;ctx.strokeStyle='rgba(70,120,200,.36)';ctx.fillStyle='rgba(70,120,200,.5)';
+  if(c.paper==='ruled'||c.paper==='grid'){for(y=c.top;y<c.H+30;y+=c.lh){ctx.beginPath();ctx.moveTo(-30,y);ctx.lineTo(c.W+30,y);ctx.stroke()}}
+  if(c.paper==='grid'){for(x=(c.mL-12)%c.lh-c.lh;x<c.W+30;x+=c.lh){ctx.beginPath();ctx.moveTo(x,-30);ctx.lineTo(x,c.H+30);ctx.stroke()}}
+  if(c.paper==='dotted'){for(y=c.top;y<c.H;y+=c.lh)for(x=(c.mL-12)%c.lh;x<c.W;x+=c.lh){ctx.beginPath();ctx.arc(x,y,1.1,0,6.3);ctx.fill()}}
+  if(c.paper==='ruled'){ctx.strokeStyle='rgba(215,80,80,.5)';ctx.beginPath();ctx.moveTo(c.mL-12,-30);ctx.lineTo(c.mL-12,c.H+30);ctx.moveTo(c.mL-9,-30);ctx.lineTo(c.mL-9,c.H+30);ctx.stroke()}
+}
+function sw(ctx,c,s,z){ctx.font=z+'px '+c.fam;var w=0;gr(s).forEach(function(g){w+=ctx.measureText(g).width});return w}
+function dw(ctx,c,r,L,str){
+  gr(str).forEach(function(g){
+    var z=L.size*(1+(r()-.5)*L.m*.012);ctx.font=z+'px '+c.fam;var w=ctx.measureText(g).width;
+    var y=L.base+L.slope*(L.x-L.x0)+Math.sin(L.ph+L.x*.02)*L.amp+(r()-.5)*L.m*.5;
+    ctx.save();ctx.translate(L.x+w/2,y);ctx.rotate((r()-.5)*L.m*.02);ctx.scale(1+(r()-.5)*L.m*.02,1);
+    ctx.globalAlpha=Math.min(1,c.pen.a*L.press*(.92+r()*.08));ctx.fillText(g,-w/2,0);ctx.restore();
+    L.x+=w*(1+(r()-.5)*L.m*.01)+(r()-.5)*L.m*.12+c.lsp*L.size/25;
+  });
+}
+function wob(ctx,c,r,x1,x2,y,wd){ctx.save();ctx.globalAlpha=c.pen.a*.9;ctx.strokeStyle=c.ink;ctx.lineWidth=wd;ctx.beginPath();ctx.moveTo(x1,y+(r()-.5)*2);
+  var n=Math.max(2,Math.round((x2-x1)/60)),s=(x2-x1)/n;for(var i=1;i<=n;i++)ctx.quadraticCurveTo(x1+s*(i-.5),y+(r()-.5)*3,x1+s*i,y+(r()-.5)*2.5);ctx.stroke();ctx.restore()}
+function strike(ctx,c,r,x1,x2,base,z){
+  ctx.save();ctx.globalAlpha=c.pen.a;ctx.strokeStyle=c.ink;ctx.lineCap='round';var y=base-z*.28,k=Math.floor(r()*3),x,i;ctx.beginPath();
+  if(k===0){ctx.lineWidth=1.3;ctx.moveTo(x1-2,y+z*.08);for(x=x1;x<x2+3;x+=z*.3){ctx.lineTo(x+z*.15,y-z*.1*(r()+.3));ctx.lineTo(x+z*.3,y+z*.1*(r()+.3))}}
+  else if(k===1){ctx.lineWidth=1.7;ctx.moveTo(x1-3,y+z*.12);ctx.quadraticCurveTo((x1+x2)/2,y-z*.1,x2+3,y-z*.1)}
+  else{ctx.lineWidth=1.2;ctx.moveTo(x1,y);for(i=0;i<9;i++)ctx.lineTo(x1+r()*(x2-x1),y+(r()-.5)*z*.55);ctx.lineTo(x2+2,y)}
+  ctx.stroke();ctx.restore();
+}
+function pnT(i,c){return c.pgs==='1'?String(i+1):c.pgs==='dash'?'- '+(i+1)+' -':c.pgs==='of'?'Page '+(i+1)+' of '+c.N:''}
+function drawPage(cv,pg,pi,c,sc){
+  var ctx=cv.getContext('2d'),r=mul(seed*1009+pi*131+3);cv.width=Math.round(c.W*sc);cv.height=Math.round(c.H*sc);ctx.setTransform(sc,0,0,sc,0,0);
+  ctx.fillStyle=c.tone;ctx.fillRect(0,0,c.W,c.H);ctx.save();
+  if(c.scan){ctx.translate(c.W/2,c.H/2);ctx.rotate((r()-.5)*.008);ctx.translate(-c.W/2,-c.H/2)}
+  paper(ctx,c);
+  ctx.fillStyle=c.ink;ctx.textBaseline='alphabetic';ctx.shadowColor=c.ink;ctx.shadowBlur=c.pen.b*sc*.5;
+  if(pi===0){var H={size:c.size*.85,m:c.mess*.8,x0:c.mL,ph:r()*6,amp:c.mess*.3,slope:0,press:.95,base:c.top-12,x:c.mL};
+    if(c.hdr)dw(ctx,c,r,H,c.hdr);
+    if(c.date){var d=new Date(),p=function(n){return(n<10?'0':'')+n},s='Date: '+p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear();H.x=H.x0=c.W-c.mR-sw(ctx,c,s,H.size);dw(ctx,c,r,H,s)}}
+  pg.forEach(function(row){
+    var it=row.it;if(it.t!=='text')return;
+    var z=it.size,m=c.mess*(1+c.tired*.06*row.row/c.cap);
+    var L={size:z,m:m,ph:r()*6.28,amp:m*.35,slope:(r()-.5)*m*.004,press:1};
+    L.base=c.top+(row.row+1)*c.lh-z*.17+(r()-.5)*m*.6;L.x=L.x0=c.mL+it.ind+(r()-.5)*m*1.2;
+    if(it.bullet){ctx.beginPath();ctx.arc(L.x0-z*.7,L.base-z*.3,z*.08,0,6.3);ctx.fill()}
+    it.words.forEach(function(o){L.press=.88+r()*.12;
+      if(o.wr){var xs=L.x,m0=L.m;L.m=m0*1.3;dw(ctx,c,r,L,o.wr);L.m=m0;strike(ctx,c,r,xs,L.x,L.base,z);L.x+=it.sp*(.75+r()*.45)}
+      dw(ctx,c,r,L,o.w);L.x+=it.sp*(.85+r()*.4+m*.02)});
+    if(it.kind!=='p')wob(ctx,c,r,L.x0,L.x-it.sp,L.base+z*.22,1.4);
+  });
+  var pt=pnT(pi,c);
+  if(pt){var N={size:c.size*.8,m:c.mess*.6,ph:1,amp:0,slope:0,press:.95,base:c.H-24};N.x=N.x0=c.W/2-sw(ctx,c,pt,N.size)/2;dw(ctx,c,r,N,pt)}
+  ctx.restore();ctx.shadowBlur=0;ctx.shadowColor='transparent';
+  if(c.scan){var g=ctx.createRadialGradient(c.W/2,c.H/2,c.H*.35,c.W/2,c.H/2,c.H*.78);g.addColorStop(0,'rgba(60,40,0,0)');g.addColorStop(1,'rgba(60,40,0,.17)');ctx.fillStyle=g;ctx.fillRect(0,0,c.W,c.H);
+    var g2=ctx.createLinearGradient(0,0,40,0);g2.addColorStop(0,'rgba(0,0,0,.12)');g2.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g2;ctx.fillRect(0,0,40,c.H)}
+  if(!noise)noise=mkNoise();ctx.globalAlpha=c.scan?.07:.035;ctx.fillStyle=ctx.createPattern(noise,'repeat');ctx.fillRect(0,0,c.W,c.H);ctx.globalAlpha=1;
+}
+/* ---------- view ---------- */
+function applyView(){
+  var b=$('pages'),z=$('zoom').value;b.className='v-'+view;
+  b.style.setProperty('--zw',z==='fit'?'min(100%,900px)':(lastC?Math.round(lastC.W*z/100):794)+'px');
+  Array.prototype.forEach.call(b.children,function(w,i){w.classList.toggle('cur',i===cur)});
+  Array.prototype.forEach.call(document.querySelectorAll('#vseg button'),function(x){x.classList.toggle('on',x.dataset.v===view)});
+  $('nav').style.display=view==='one'?'':'none';$('zoom').style.display=(view==='list'||view==='one')?'':'none';
+  $('pi').textContent=(cur+1)+' / '+canv.length;$('prev').disabled=cur<=0;$('next').disabled=cur>=canv.length-1;
+}
+function setView(v){closeEd();view=v;applyView();store()}
+function addPage(){
+  var i=canv.length,w=document.createElement('div');w.className='pg';
+  w.innerHTML='<div class="tb"><span class="pl"></span><span class="pb"><button class="alt">PNG</button> <button class="alt">JPG</button></span></div><canvas></canvas>';
+  var bs=w.querySelectorAll('.pb button');bs[0].onclick=function(){one(i,'image/png','png')};bs[1].onclick=function(){one(i,'image/jpeg','jpg')};
+  $('pages').appendChild(w);canv.push(w.querySelector('canvas'));
+}
+async function build(){
+  if(busy){again=true;return}busy=true;
+  try{do{again=false;var c=cfg();
+    try{await document.fonts.load('24px "'+c.font+'"',c.txt.slice(0,3000)+c.hdr)}catch(e){}
+    if(again)continue;
+    var pages=layout(c,mctx),box=$('pages');c.N=pages.length;lastC=c;lastPages=pages;
+    while(canv.length>pages.length){canv.pop();box.removeChild(box.lastChild)}
+    while(canv.length<pages.length)addPage();
+    if(cur>=pages.length)cur=pages.length-1;if(cur<0)cur=0;
+    pages.forEach(function(pg,i){drawPage(canv[i],pg,i,c,2);var w=box.children[i];w.querySelector('.pl').textContent='Page '+(i+1)+' of '+pages.length;w.querySelector('.pb').style.display=dl?'':'none'});
+    applyView();if(!xb)st(pages.length+(pages.length>1?' pages':' page')+' · '+c.cap+' lines each');
+  }while(again)}finally{busy=false}
+}
+function later(){clearTimeout(tm);tm=setTimeout(build,280);store()}
+/* ---------- edit on the page ---------- */
+function closeEd(){$('edw').style.display='none';edSrc=-1}
+function sizeEd(){var e=$('ed');e.style.height='auto';e.style.height=Math.min(e.scrollHeight+2,260)+'px'}
+function openEd(i,e){
+  var c=lastC,pg=lastPages[i],cv=canv[i],rc=cv.getBoundingClientRect(),vw=$('view'),vr=vw.getBoundingClientRect(),hit=null;
+  var row=Math.floor(((e.clientY-rc.top)*c.H/rc.height-c.top)/c.lh);
+  pg.forEach(function(r){if(r.row<=row)hit=r});if(!hit)hit=pg[0];
+  if(!hit||hit.it.src==null)return;
+  edSrc=hit.it.src;var ed=$('ed'),w=$('edw');ed.value=$('txt').value.split('\n')[edSrc]||'';
+  w.style.display='block';w.style.width=Math.max(240,rc.width*.92)+'px';
+  w.style.left=(rc.left-vr.left+vw.scrollLeft+rc.width*.04)+'px';
+  w.style.top=Math.max(0,rc.top-vr.top+(c.top+hit.row*c.lh)*rc.height/c.H-34)+'px';
+  sizeEd();ed.focus();
+}
+$('pages').addEventListener('click',function(e){var i=canv.indexOf(e.target);if(i<0)return;if(view==='grid'){cur=i;setView('one');return}openEd(i,e)});
+$('ed').addEventListener('input',function(){if(edSrc<0)return;var L=$('txt').value.split('\n');L[edSrc]=this.value.replace(/\n/g,' ');$('txt').value=L.join('\n');sizeEd();later()});
+$('ed').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key==='Escape'){e.preventDefault();closeEd()}});
+$('ed').addEventListener('blur',function(){setTimeout(closeEd,150)});
+/* ---------- export ---------- */
+var crcT=(function(){var t=[],c,n,k;for(n=0;n<256;n++){c=n;for(k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc(b){var c=-1;for(var i=0;i<b.length;i++)c=crcT[(c^b[i])&255]^(c>>>8);return(c^-1)>>>0}
+function zip(files){
+  var enc=new TextEncoder(),parts=[],cd=[],off=0,cds=0;
+  files.forEach(function(f){var nm=enc.encode(f.name),cr=crc(f.data),sz=f.data.length;
+    var h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(12,0x21,true);h.setUint32(14,cr,true);h.setUint32(18,sz,true);h.setUint32(22,sz,true);h.setUint16(26,nm.length,true);
+    parts.push(new Uint8Array(h.buffer),nm,f.data);
+    var d=new DataView(new ArrayBuffer(46));d.setUint32(0,0x02014b50,true);d.setUint16(4,20,true);d.setUint16(6,20,true);d.setUint16(14,0x21,true);d.setUint32(16,cr,true);d.setUint32(20,sz,true);d.setUint32(24,sz,true);d.setUint16(28,nm.length,true);d.setUint32(42,off,true);
+    cd.push(new Uint8Array(d.buffer),nm);off+=30+nm.length+sz;cds+=46+nm.length});
+  var e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cds,true);e.setUint32(16,off,true);
+  return new Blob(parts.concat(cd,[new Uint8Array(e.buffer)]),{type:'application/zip'});
+}
+function pdf(imgs,c){
+  var enc=new TextEncoder(),parts=[],off=0,xr=[],n=imgs.length,i,k;
+  function put(x){var b=typeof x==='string'?enc.encode(x):x;parts.push(b);off+=b.length}
+  function obj(num,s){xr[num]=off;put(num+' 0 obj\n'+s+'\nendobj\n')}
+  var pw=(c.W*.75).toFixed(2),ph=(c.H*.75).toFixed(2),kids=[];
+  put('%PDF-1.4\n');obj(1,'<</Type/Catalog/Pages 2 0 R>>');
+  for(i=0;i<n;i++)kids.push((3+i*3)+' 0 R');
+  obj(2,'<</Type/Pages/Kids['+kids.join(' ')+']/Count '+n+'>>');
+  for(i=0;i<n;i++){
+    obj(3+i*3,'<</Type/Page/Parent 2 0 R/MediaBox[0 0 '+pw+' '+ph+']/Resources<</XObject<</Im0 '+(5+i*3)+' 0 R>>>>/Contents '+(4+i*3)+' 0 R>>');
+    var cs='q '+pw+' 0 0 '+ph+' 0 0 cm /Im0 Do Q';obj(4+i*3,'<</Length '+cs.length+'>>\nstream\n'+cs+'\nendstream');
+    xr[5+i*3]=off;put((5+i*3)+' 0 obj\n<</Type/XObject/Subtype/Image/Width '+imgs[i].w+'/Height '+imgs[i].h+'/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length '+imgs[i].b.length+'>>\nstream\n');put(imgs[i].b);put('\nendstream\nendobj\n');
+  }
+  var xo=off,N=3+n*3,t='xref\n0 '+N+'\n0000000000 65535 f \n';
+  for(k=1;k<N;k++)t+=String(xr[k]).padStart(10,'0')+' 00000 n \n';
+  put(t+'trailer\n<</Size '+N+'/Root 1 0 R>>\nstartxref\n'+xo+'\n%%EOF');
+  return new Blob(parts,{type:'application/pdf'});
+}
+function renderBlob(i,type,sc){var cv=document.createElement('canvas');drawPage(cv,lastPages[i],i,lastC,sc);return new Promise(function(res){cv.toBlob(res,type,.93)})}
+function saveErr(e){if(!e||e.code!=='declined')st('Could not save: '+((e&&(e.message||e.code))||'unknown error'))}
+function one(i,type,ext){if(!dl)return;renderBlob(i,type,+$('xq').value).then(function(b){return dl.save({filename:'handwritten-page-'+(i+1)+'.'+ext,data:b})}).catch(saveErr)}
+function range(s,n){var out=[],k;s=s.trim();if(!s){for(k=0;k<n;k++)out.push(k);return out}
+  s.split(',').forEach(function(p){var m=p.trim().match(/^(\d+)(?:\s*-\s*(\d+))?$/);if(!m)return;var a=+m[1],b=m[2]?+m[2]:a;for(var q=a;q<=b;q++)if(q>=1&&q<=n&&out.indexOf(q-1)<0)out.push(q-1)});
+  return out.sort(function(a,b){return a-b})}
+async function runExport(){
+  if(!dl){st('Downloads aren’t available in this view.');return}
+  if(xb)return;xb=true;
+  var fmt=$('xf').value,c=lastC,idx=range($('xr').value,lastPages.length),sc=+$('xq').value;
+  try{
+    if(fmt==='txt'){await dl.save({filename:'handwriting-text.txt',data:c.txt});st('Saved');return}
+    if(!idx.length){st('No valid pages in that range');return}
+    var files=[],imgs=[],j,mime=fmt==='png'?'image/png':'image/jpeg',b,bl;
+    for(j=0;j<idx.length;j++){
+      st('Rendering page '+(idx[j]+1)+' ('+(j+1)+'/'+idx.length+')…');await new Promise(function(r){setTimeout(r,15)});
+      bl=await renderBlob(idx[j],mime,sc);b=new Uint8Array(await bl.arrayBuffer());
+      if(fmt==='pdf')imgs.push({w:Math.round(c.W*sc),h:Math.round(c.H*sc),b:b});
+      else files.push({name:'page-'+(idx[j]+1<10?'0':'')+(idx[j]+1)+(fmt==='png'?'.png':'.jpg'),data:b,blob:bl});
+    }
+    st('Packaging…');
+    if(fmt==='pdf')await dl.save({filename:'handwritten.pdf',data:pdf(imgs,c)});
+    else if(files.length===1)await dl.save({filename:files[0].name,data:files[0].blob});
+    else await dl.save({filename:'handwritten-'+fmt+'.zip',data:zip(files)});
+    st('Export complete');
+  }catch(e){saveErr(e)}finally{xb=false}
+}
+/* ---------- wiring ---------- */
+function store(){try{var o={v:view};IDS.forEach(function(i){var e=$(i);o[i]=e.type==='checkbox'?e.checked:e.value});localStorage.setItem('hwstudio2',JSON.stringify(o))}catch(e){}}
+function restore(){$('txt').value=SAMPLE;try{var o=JSON.parse(localStorage.getItem('hwstudio2')||'null');if(o){IDS.forEach(function(i){if(o[i]==null)return;var e=$(i);if(e.type==='checkbox')e.checked=o[i];else e.value=o[i]});if(o.v)view=o.v}}catch(e){}}
+function vals(){Array.prototype.forEach.call(document.querySelectorAll('input[type=range]'),function(r){var b=$('v_'+r.id);if(b)b.textContent=r.value})}
+function showTab(t){Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(x){x.classList.toggle('on',x.dataset.t===t)});Array.prototype.forEach.call(document.querySelectorAll('.tabc'),function(x){x.hidden=x.id!=='t_'+t})}
+function newVar(){seed=Math.floor(Math.random()*1e6);build()}
+restore();vals();
+IDS.forEach(function(i){var e=$(i);e.addEventListener('input',function(){vals();if(i==='zoom'){applyView();store()}else later()});e.addEventListener('change',function(){if(i==='zoom')return;later()})});
+$('pen').addEventListener('change',function(){$('ink').value=PEN[$('pen').value].c;later()});
+Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){b.onclick=function(){showTab(b.dataset.t)}});
+Array.prototype.forEach.call(document.querySelectorAll('#vseg button'),function(b){b.onclick=function(){setView(b.dataset.v)}});
+$('prev').onclick=function(){closeEd();cur=Math.max(0,cur-1);applyView()};
+$('next').onclick=function(){closeEd();cur=Math.min(canv.length-1,cur+1);applyView()};
+$('rand').onclick=$('rand2').onclick=newVar;
+$('xgo').onclick=$('exp').onclick=runExport;
+var NOD='Downloads are not available in this view. Long-press or right-click a page to save it as an image.';
+build();
+if(window.claude&&claude.use){claude.use('downloads').then(function(d){dl=d;if(d){$('xgo').disabled=false;$('exp').disabled=false;build()}else $('dlh').textContent=NOD}).catch(function(){$('dlh').textContent=NOD})}
+else $('dlh').textContent=NOD;
+</script>
+</body>
+</html>
